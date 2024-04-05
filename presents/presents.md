@@ -11,6 +11,13 @@ For my implementation I imagined a quite simple solution while holding the three
 
 Additionally I used implementations for Nodes and Linked Lists in accordance to standard linked list practices.
 
+My main function is as follows:
+    - Spawn a bag of presents
+    - Shuffle the bag
+    - Calculate presents range
+    - create linked list
+    - Spawn threads on servant_task and run them
+
 For the runtime it started with 13s, and for each consecutive run it got shorter, my last runtime was 0.73s
 
 To make the code better or more realistic I can make it a random chance to do any of the 3 actions instead of how it is currently--do action 1, do action 2, maybe do 3 then loop.

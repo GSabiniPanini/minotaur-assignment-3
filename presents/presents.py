@@ -13,6 +13,7 @@ class ConcurrentLinkedList:
         self.lock = threading.Lock()
 
     # Add nodes to Linked list in order
+    # Not used
     def add_present(self, present):
         new_node = Node(present)
         with self.lock:
@@ -28,7 +29,26 @@ class ConcurrentLinkedList:
                 current.next = new_node
                 self.length += 1
 
-    # Remove nodes while keeping ascending order
+    # Add the top node from the present bag
+    def add_present_from_bag(self):
+        with self.lock:
+            value = present_bag.pop()
+            new_node = Node(value)
+            if not self.head or value < self.head.data:
+                new_node.next = self.head
+                self.head = new_node
+                self.length += 1
+            else:
+                current = self.head
+                while current.next and current.next.data < value:
+                    current = current.next
+                new_node.next = current.next
+                current.next = new_node
+                self.length += 1
+
+
+    # Remove nodes while keeping ascending order 
+    # Not used
     def remove_present(self, tag):
         with self.lock:
             if self.head and self.head.data == tag:
@@ -42,6 +62,7 @@ class ConcurrentLinkedList:
                     current.next = current.next.next
                     self.length -= 1
 
+    # Remove a node randomly from the current list
     def remove_present_rand(self):
         if not self.head:
             return None
@@ -76,7 +97,7 @@ class ConcurrentLinkedList:
 def servant_task(servant_id, presents_range):
     for i in range(presents_range[0], presents_range[1]):
         # Simulate adding presents in order
-        linked_list.add_present(i)
+        linked_list.add_present_from_bag()
         # Simulate writing thank you card randomly
         linked_list.remove_present_rand()
         
@@ -85,7 +106,7 @@ def servant_task(servant_id, presents_range):
             random_index = random.randint(0, num_presents)
             present_found = linked_list.search_present(random_index)
             if present_found:
-                print(f'Servant {servant_id} has found gift {random_index}.')
+                print(f'Servant {servant_id} has found gift {random_index}!!! This is exceptionally rare')
             else:
                 print(f'Servant {servant_id} gift not found.')
 
@@ -94,6 +115,10 @@ def servant_task(servant_id, presents_range):
 if __name__ == "__main__":
     num_presents = 500000
     num_servants = 4
+    present_bag = list(range(num_presents))
+
+    # Un-order the bag
+    random.shuffle(present_bag)
 
     # Calculate presents range for each servant
     presents_per_servant = num_presents // num_servants
