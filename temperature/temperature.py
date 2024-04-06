@@ -11,7 +11,8 @@ def temperature_sensor(sensor_id, shared_memory, shared_time, cv):
         with cv:
             shared_time[sensor_id] = current_time
             shared_memory[sensor_id] = temperature
-            cv.notify()
+            
+            # cv.notify() for testing
 
         count -= 1
 
@@ -24,13 +25,14 @@ def compile_report(shared_memory, shared_time, cv):
     top_5 = []
     lowest_5 = []
 
-    # 472 times so it gathers data every minute excluding the 1st (8 * 59)
-    count = 472
-    while count > 0:
-        # Wait for an hour divided by 60 for brevity
+    start_time = time.time()
+    # 60 times so it gathers at least a minute worth of data updates (480)
+    count = 1
+    while count < 61:
+        # Compile data every second, (1 minute / 60 for brevity) for a minute (1 hour / 60 for brevity)
         with cv:
-            cv.wait(timeout=60)
-
+            cv.wait(timeout=1)
+    
         # Grab temperatures and sort
         temperatures = shared_memory[:]
         temperatures.extend(top_5)
@@ -43,16 +45,21 @@ def compile_report(shared_memory, shared_time, cv):
         # Find the max difference
         max_difference = calculate_max_difference(temperatures)
         
+        # Update stored values
         if max_difference > total_max_difference:
             total_max_difference = max_difference
             total_max_interval = find_max_difference_interval(temperatures)
 
-        print(f'{"-" * 10} Report {"-" * 10}')
-        print("Highest Temperatures: ", top_5)
-        print("Lowest Temperatures: ", lowest_5)
-        print(f'Total Max Interval: {total_max_interval}')
+        # Print update count and increment
+        cur_time = time.time()
+        print(f'{(cur_time - start_time):.2f} | Data update {count}')
+        count += 1
 
-        count -= 1
+    # Print after the data is collected for the totals
+    print(f'{"-" * 10} Report {"-" * 10}')
+    print("Highest Temperatures: ", top_5)
+    print("Lowest Temperatures: ", lowest_5)
+    print(f'Total Max Interval: {total_max_interval}')
 
 def calculate_max_difference(list):
     return max(list) - min(list)
